@@ -1,0 +1,14 @@
+services:
+  tester:
+    build: .
+    image: qundis-tester:local
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${HTTP_PORT:-8766}:8080"
+    devices:
+      - "${SERIAL_DEVICE:-/dev/ttyACM0}:/dev/ttyMeter"
+    volumes:
+      - ./data:/data
+    command: ["python", "-m", "tester", "--port", "/dev/ttyMeter", "--mode", "${RADIO_MODE:-ct}", "--host", "0.0.0.0", "--data", "/data"]
+    stop_grace_period: 15s
