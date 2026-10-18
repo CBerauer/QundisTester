@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import os
 from logging.handlers import RotatingFileHandler
 import threading
 import signal
@@ -18,7 +19,7 @@ def main():
     parser.add_argument('--port')
     parser.add_argument('--mode',choices=list(MODES),default='ct')
     parser.add_argument('--host',default='127.0.0.1')
-    parser.add_argument('--http-port',type=int,default=8080)
+    parser.add_argument('--http-port',type=int,default=8766 if os.name == 'nt' else 8080)
     parser.add_argument('--data',default='data')
     parser.add_argument('--wmbusmeters',help='Optional executable path for raw telegram decoding')
     parser.add_argument('--restore-state',help='Restore a previously saved API snapshot before receiving')
@@ -43,7 +44,13 @@ def main():
         restored={e['sequence']:e for e in snapshot.get('meters',[])+snapshot.get('telegrams',[])}
         for event in sorted(restored.values(),key=lambda e:e['sequence']):
             store.ingest({k:v for k,v in event.items() if k not in ('decoded','external_decoded','sequence','device_key','last_reading')},timestamp=event['timestamp'])
-    http=server(store,args.host,args.http_port)
+    try:
+        http=server(store,args.host,args.http_port)
+    except OSError as error:
+        if error.errno in (13, 48, 98, 10013, 10048) or getattr(error, 'winerror', None) in (10013, 10048):
+            parser.exit(1, f'Webport {args.host}:{args.http_port} ist belegt oder vom Betriebssystem gesperrt. '
+                        'Bitte einen freien Port mit --http-port waehlen, z.B. --http-port 8767.\n')
+        raise
     stop=threading.Event()
     target=run_simulation if args.simulate else run_radio
     arguments=(stop,store.ingest,store.update_status) if args.simulate else (stop,args.port,args.mode,store.ingest,store.update_status)

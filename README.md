@@ -11,7 +11,7 @@ Python von python.org mit `pip` und `py`-Launcher installieren. Im Projektordner
 start.bat --simulate
 ```
 
-Dann http://127.0.0.1:8080 öffnen. Für echten Empfang:
+Dann http://127.0.0.1:8766 öffnen (Windows-Standard). Für echten Empfang:
 
 ```bat
 start.bat
@@ -37,6 +37,9 @@ Adressfilter deaktivieren, RX-Benachrichtigungen aktivieren, RAM-Konfiguration s
 und zurücklesen. NVM wird nicht verändert. Aktive Einstellungen bleiben bis zum
 Neustart des Sticks bestehen. Fehler/Abziehen führen nach drei Sekunden zu erneutem
 Verbindungsversuch. Der Diagnosebefehl liest nur. Andere Programme müssen COM3 freigeben.
+
+Unter Windows ist Port 8766 voreingestellt, unter Linux/Docker weiterhin 8080.
+Ein belegter oder gesperrter Port kann mit `start.bat --http-port 8767` umgangen werden.
 
 ## Daten und Oberfläche
 
